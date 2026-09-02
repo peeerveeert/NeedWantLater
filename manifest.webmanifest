@@ -1,0 +1,16 @@
+{
+  "name": "NeedWantLater",
+  "short_name": "NWL",
+  "description": "Карманное пространство для нужд, хотелок и будущих трат.",
+  "lang": "ru",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#050811",
+  "theme_color": "#050811",
+  "icons": [
+    {"src":"icon-192.png","sizes":"192x192","type":"image/png"},
+    {"src":"icon-512.png","sizes":"512x512","type":"image/png"}
+  ]
+}
