@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#06090f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="NeedWantLater" />
+  <meta name="description" content="Карманное пространство для нужд, хотелок и будущих трат." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="icon" href="icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>NeedWantLater</title>
+</head>
+<body>
+  <div class="ambient ambient-a"></div>
+  <div class="ambient ambient-b"></div>
+
+  <main class="app-shell" id="appShell">
+    <header class="topbar">
+      <div>
+        <h1 class="brand" aria-label="NeedWantLater"><span class="need-word">Need</span><span class="want-word">Want</span><span class="later-word">Later</span></h1>
+        <p class="tagline">Всё, что занимает место в твоей голове</p>
+      </div>
+    </header>
+
+    <section class="view active" id="overviewView" aria-label="Обзор">
+      <section class="summary-grid" aria-label="Сводка">
+        <article class="summary-card total-card">
+          <div><strong id="totalCount">0</strong><span> вещей</span></div>
+          <p>у тебя в голове</p>
+        </article>
+        <article class="summary-card types-card" id="typeSummary"></article>
+        <article class="summary-card money-card">
+          <strong id="moneySummary">—</strong>
+          <span>запланировано</span>
+          <small id="unknownSummary"></small>
+        </article>
+      </section>
+
+      <div id="board"></div>
+      <div class="spacer" aria-hidden="true"></div>
+    </section>
+
+    <section class="view" id="searchView" aria-label="Поиск">
+      <div class="page-heading">
+        <h2>Поиск</h2>
+        <p>Быстро найди то, что уже добавлял.</p>
+      </div>
+      <label class="search-box">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
+        <input id="searchInput" type="search" placeholder="Очки, студия, здоровье…" autocomplete="off" />
+      </label>
+      <div class="search-results" id="searchResults"></div>
+      <div class="spacer"></div>
+    </section>
+
+    <section class="view" id="closedView" aria-label="Закрыто">
+      <div class="page-heading">
+        <h2>Закрыто</h2>
+        <p>Всё, что больше не занимает место в голове.</p>
+      </div>
+      <div class="closed-list" id="closedList"></div>
+      <div class="spacer"></div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Основная навигация">
+    <button class="nav-item active" data-view="overview" aria-label="Обзор">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10.5 12 3l8.5 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-4.5v-6h-5v6H5a1.5 1.5 0 0 1-1.5-1.5v-9Z"/></svg></span>
+      <span>Обзор</span>
+    </button>
+    <button class="nav-item" data-view="search" aria-label="Поиск">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg></span>
+      <span>Поиск</span>
+    </button>
+    <button class="nav-item add-nav" id="openAdd" aria-label="Добавить">
+      <span class="add-orb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>
+      <span class="add-label">Добавить</span>
+    </button>
+    <button class="nav-item" data-view="closed" aria-label="Закрыто">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-4.4-7.75M8.5 12.5l2.25 2.25L20 5.5"/></svg></span>
+      <span>Закрыто</span>
+    </button>
+  </nav>
+
+  <div class="sheet-backdrop" id="sheetBackdrop" hidden></div>
+
+  <section class="bottom-sheet" id="addSheet" aria-modal="true" role="dialog" aria-labelledby="addTitle" hidden>
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div>
+        <p class="eyebrow">Быстрое добавление</p>
+        <h2 id="addTitle">Что у тебя на уме?</h2>
+      </div>
+      <button class="icon-button" data-close-sheet aria-label="Закрыть">×</button>
+    </div>
+
+    <div id="captureStep" class="sheet-step active">
+      <textarea id="quickInput" rows="5" placeholder="Например: хочу купить очки, но пока не знаю сколько стоят"></textarea>
+      <p class="helper">Пиши как обычно. Тип, категория, цена и следующий шаг определятся автоматически.</p>
+      <button class="primary-button" id="analyzeButton">Разобрать</button>
+    </div>
+
+    <form id="previewStep" class="sheet-step" autocomplete="off">
+      <div class="auto-badge">✦ Определено автоматически</div>
+      <div class="preview-hero" id="previewHero">
+        <div class="preview-icon" id="previewIcon"></div>
+        <div>
+          <span class="preview-type" id="previewType"></span>
+          <h3 id="previewTitleText"></h3>
+          <p id="previewCategoryText"></p>
+        </div>
+      </div>
+
+      <div class="segmented" aria-label="Тип">
+        <button type="button" data-type-choice="need">NEED</button>
+        <button type="button" data-type-choice="want">WANT</button>
+        <button type="button" data-type-choice="later">LATER</button>
+      </div>
+
+      <label class="field"><span>Название</span><input id="previewTitleInput" required /></label>
+      <div class="field-row">
+        <label class="field"><span>Цена / диапазон</span><input id="previewPriceInput" placeholder="не знаю" /></label>
+        <label class="field"><span>Категория</span><input id="previewCategoryInput" /></label>
+      </div>
+      <label class="field"><span>Следующий шаг</span><input id="previewNextInput" /></label>
+      <button class="primary-button" type="submit">Добавить</button>
+      <button class="text-button" type="button" id="backToCapture">← Изменить исходный текст</button>
+    </form>
+  </section>
+
+  <section class="bottom-sheet detail-sheet" id="detailSheet" aria-modal="true" role="dialog" aria-labelledby="detailTitle" hidden>
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div>
+        <p class="eyebrow" id="detailMeta"></p>
+        <h2 id="detailTitle"></h2>
+      </div>
+      <button class="icon-button" data-close-sheet aria-label="Закрыть">×</button>
+    </div>
+    <div class="detail-visual" id="detailVisual"></div>
+    <form id="detailForm" autocomplete="off">
+      <div class="segmented" aria-label="Тип">
+        <button type="button" data-detail-type="need">NEED</button>
+        <button type="button" data-detail-type="want">WANT</button>
+        <button type="button" data-detail-type="later">LATER</button>
+      </div>
+      <label class="field"><span>Название</span><input id="detailTitleInput" required /></label>
+      <div class="field-row">
+        <label class="field"><span>Цена / диапазон</span><input id="detailPriceInput" /></label>
+        <label class="field"><span>Категория</span><input id="detailCategoryInput" /></label>
+      </div>
+      <label class="field"><span>Следующий шаг</span><input id="detailNextInput" /></label>
+      <label class="field"><span>Заметка</span><textarea id="detailNoteInput" rows="3" placeholder="Необязательно"></textarea></label>
+      <button class="primary-button" type="submit">Сохранить</button>
+      <div class="detail-actions">
+        <button class="secondary-button" type="button" id="toggleClosed"></button>
+        <button class="danger-button" type="button" id="deleteItem">Удалить</button>
+      </div>
+    </form>
+  </section>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="classifier.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
