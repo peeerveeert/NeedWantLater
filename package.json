@@ -1,0 +1,10 @@
+{
+  "name": "needwantlater",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "check": "node --check app.js && node --check classifier.js",
+    "test": "node tests.mjs",
+    "verify": "npm run check && npm test"
+  }
+}
